@@ -39,6 +39,7 @@ export const authLogin = async(email: string, password: string) => {
     return returnUserToken(data)
   } catch(error) {
     console.log(error)
+    return null
     throw new Error('Usuario no valido')
   }
 }
