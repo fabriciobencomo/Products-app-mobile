@@ -8,10 +8,19 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import 'react-native-reanimated';
 import { useThemeColor } from '@/presentation/theme/hooks/useThemeColor';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient({
+  defaultOptions:{
+    queries: {
+      retry: false,
+    }
+  }
+})
 
 export default function RootLayout() {
 
@@ -36,13 +45,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{backgroundColor: backgroundColor, flex: 1}}>  
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{headerShown: false}}>
-          {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" /> */}
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{headerShown: false}}>
+            {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" /> */}
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }
