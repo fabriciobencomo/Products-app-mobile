@@ -1,5 +1,5 @@
 import { useColorScheme } from '@/presentation/theme/hooks/useColorScheme';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider, useTheme } from '@react-navigation/native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -7,13 +7,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import 'react-native-reanimated';
+import { useThemeColor } from '@/presentation/theme/hooks/useThemeColor';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+
   const colorScheme = useColorScheme();
+  const backgroundColor = useThemeColor({}, 'background')
+
   const [loaded] = useFonts({
     KanitRegular: require('../assets/fonts/Kanit-Regular.ttf'),
     KanitThin: require('../assets/fonts/Kanit-Thin.ttf'),
@@ -31,7 +35,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView>  
+    <GestureHandlerRootView style={{backgroundColor: backgroundColor, flex: 1}}>  
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{headerShown: false}}>
           {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
