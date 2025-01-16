@@ -11,7 +11,9 @@ const ProductImages = ({images}: Props) => {
     <>
       {
         (images.length === 0) ? (
-          <Image style={{width: 300, height: 300}} source={ require('../../../assets/images/no-product-image.png')}/>
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Image style={{width: 300, height: 300}} source={ require('../../../assets/images/no-product-image.png')}/>
+          </View>
         )
         : (
           <FlatList data={images} keyExtractor={(item) => item} horizontal showsHorizontalScrollIndicator={false} renderItem={({item}) => (
