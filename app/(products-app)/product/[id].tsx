@@ -6,13 +6,18 @@ import { ThemedView } from '@/presentation/theme/components/ThemedView'
 import { ThemedText } from '@/presentation/theme/components/ThemedText'
 import ThemeTextInput from '@/presentation/theme/components/ThemeTextInput'
 import { useProduct } from '@/presentation/products/hooks/useProduct'
+import ProductImages from '@/presentation/products/components/ProductImages'
+import ThemedButtonGroup from '@/presentation/theme/components/ThemedButtonGroup'
+import ThemedButton from '@/presentation/theme/components/ThemedButton'
+import { Formik } from 'formik'
+import { Size } from '@/core/products/interfaces/product'
 
 const ProductScreen = () => {
 
   const navigation = useNavigation()
 
   const {id } = useLocalSearchParams()
-  const { productQuery } = useProduct(`${id}`)
+  const { productQuery, productMutation } = useProduct(`${id}`)
 
   useEffect(() => {
     navigation.setOptions({
@@ -46,20 +51,52 @@ const ProductScreen = () => {
   const product = productQuery.data!
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{flex:1}}>
-      <ScrollView >
-        <ThemedView style={{marginHorizontal: 10, marginTop: 20}}>
-          <ThemeTextInput placeholder='Nombre del Producto' style={{marginVertical: 5}}/>
-          <ThemeTextInput placeholder='slug' style={{marginVertical: 5}}/>
-          <ThemeTextInput placeholder='description' multiline numberOfLines={10} style={{marginVertical: 5}}/>
-        </ThemedView>
+    <Formik initialValues={product} onSubmit={(productLike) => productMutation.mutate(productLike)}>
 
-        <ThemedView style={{marginHorizontal: 10, marginVertical: 5, flexDirection: 'row', gap: 10}}>
-          <ThemeTextInput placeholder='Precio' style={{flex: 1}}/>
-          <ThemeTextInput placeholder='Inventario' style={{flex: 1}}/>
-        </ThemedView>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {
+        ({values, handleSubmit, handleChange, setFieldValue}) => (
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{flex:1}}>
+            <ScrollView >
+              <ProductImages images={values.images}></ProductImages>
+              <ThemedView style={{marginHorizontal: 10, marginTop: 20}}>
+                <ThemeTextInput placeholder='Nombre del Producto' style={{marginVertical: 5}} value={values.title} onChangeText={handleChange('title')}/>
+                <ThemeTextInput placeholder='slug' style={{marginVertical: 5}} value={values.slug} onChangeText={handleChange('slug')}/>
+                <ThemeTextInput placeholder='description' multiline numberOfLines={10} style={{marginVertical: 5}} value={values.description} onChangeText={handleChange('description')}/>
+              </ThemedView>
+
+              <ThemedView style={{marginHorizontal: 10, marginVertical: 5, flexDirection: 'row', gap: 10}}>
+                <ThemeTextInput placeholder='Precio' style={{flex: 1}} value={values.price.toString()} onChangeText={handleChange('price')} />
+                <ThemeTextInput placeholder='Inventario' style={{flex: 1}} value={values.stock.toString()} onChangeText={handleChange('stock')}/>
+              </ThemedView>
+
+              <ThemedView style={{marginHorizontal: 10}}>
+                <ThemedButtonGroup  
+                  options={['XS', 'S', 'M', 'L', 'XL', 'XXL']} 
+                  selectedOptions={values.sizes} 
+                  onSelect={(option) => {
+                    setFieldValue('sizes', values.sizes.includes(option as Size) ? values.sizes.filter(size => size !== option) : [...values.sizes, option])
+                  }}
+                />
+                <ThemedButtonGroup  
+                  options={['kid', 'men', 'women', 'unisex']} 
+                  selectedOptions={[values.gender]} 
+                  onSelect={(option) => setFieldValue('gender', option)}
+                />
+              </ThemedView>
+
+              {/* Boton para Guardar */}
+              <View style={{marginHorizontal: 10, marginBottom: 50, marginTop: 20}}>
+                <ThemedButton icon='save-outline' onPress={() => handleSubmit()}>
+                  Guardar
+                </ThemedButton>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )
+      }
+
+
+    </Formik>
   )
 }
 

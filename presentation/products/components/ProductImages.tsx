@@ -1,11 +1,25 @@
-import { View, Text } from 'react-native'
+import { View, Text, Image } from 'react-native'
 import React from 'react'
+import { FlatList } from 'react-native-gesture-handler'
 
-const ProductImages = () => {
+interface Props {
+  images: string[]
+}
+
+const ProductImages = ({images}: Props) => {
   return (
-    <View>
-      <Text>ProductImages</Text>
-    </View>
+    <>
+      {
+        (images.length === 0) ? (
+          <Image style={{width: 300, height: 300}} source={ require('../../../assets/images/no-product-image.png')}/>
+        )
+        : (
+          <FlatList data={images} keyExtractor={(item) => item} horizontal showsHorizontalScrollIndicator={false} renderItem={({item}) => (
+            <Image source={{uri: item}} style={{width: 300, height: 300, marginHorizontal: 7, borderRadius: 5}}/>
+          )} />
+        )
+      }
+    </>
   )
 }
 
