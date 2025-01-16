@@ -45,7 +45,6 @@ export const useAuthStore = create<AuthState>()((set,get) => ({
   
   login: async(email: string, password:string) => {
     const resp = await authLogin(email, password)
-    console.log(resp)
     return get().changeStatus(resp?.token, resp?.user)
   },
 
@@ -63,7 +62,6 @@ export const useAuthStore = create<AuthState>()((set,get) => ({
 
   register: async (email: string, password: string, fullName: string) => {
     const resp = await authRegister(email, password, fullName);
-    console.log(resp)
     return get().changeStatus(resp?.token, resp?.user);
   }
 }))
