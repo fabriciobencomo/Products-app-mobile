@@ -76,6 +76,7 @@ export default function CameraScreen() {
     result.assets.forEach(asset => {
       addSelectedImage(asset.uri)
     })
+    router.dismiss()
   }
 
   const onPictureSAccepted = async() => {

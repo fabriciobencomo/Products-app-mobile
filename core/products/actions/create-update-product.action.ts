@@ -13,14 +13,53 @@ export const updateCreateProduct = (product: Partial<Product>) => {
   return createProduct(product)
 }
 
+const prepareImages = async(images: string[]): Promise<string[]> => {
+  const fileImages = images.filter(image => {
+    if(image.includes('file')){
+      return image
+    }
+  })
+
+  const currentImages = images.filter(image => {
+    if(!image.includes('file')){
+      return image
+    }
+  }) 
+
+  if(fileImages.length > 0){
+    const uploadPromises = fileImages.map(uploadImages)
+    const uploadedImages = await Promise.all(uploadPromises)
+    currentImages.push(...uploadedImages)
+  }
+
+  return currentImages.map(img => img.split('/').pop()!)
+}
+
+const uploadImages = async(image: string): Promise<string> => {
+  const formData = new FormData() as any;
+  formData.append('file', {
+    uri: image,
+    name: image.split('/').pop(),
+    type: 'image/jpeg'
+  })
+
+  const {data} = await productsApi.post<{image: string}>('/files/product', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return data.image;
+}
+
 const updateProduct = async (product: Partial<Product>) => {
   
   const {id, images = [], user, ...rest} = product
 
   try {
+    const checkImages = await prepareImages(images)
     const {data} = await productsApi.patch(`/products/${id}`, {
       
-      // TODO: IMAGES PROCESS
+      images: checkImages,
       ...rest
     })
 
@@ -34,9 +73,9 @@ const createProduct = async(product: Partial<Product>) => {
   const {id, images = [], user, ...rest} = product
 
   try {
-    const {data} = await productsApi.post(`/products`, {
-      
-      // TODO: IMAGES PROCESS
+    const checkImages = await prepareImages(images)
+    const {data} = await productsApi.post(`/products`, {    
+      images: checkImages,
       ...rest
     })
 

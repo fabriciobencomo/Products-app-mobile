@@ -2,11 +2,14 @@ import { updateCreateProduct } from "@/core/products/actions/create-update-produ
 import { getProductById } from "@/core/products/actions/get-product-by-id.action"
 import { getProducts } from "@/core/products/actions/get-products.actions"
 import { Product } from "@/core/products/interfaces/product"
+import { useCameraStore } from "@/presentation/store/useCameraStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRef } from "react"
 import { Alert } from "react-native"
 
 export const useProduct = (productId: string) => {
+
+  const {clearImages} = useCameraStore();
 
   const queryClient = useQueryClient()
   const productIdRef = useRef(productId)
@@ -27,7 +30,7 @@ export const useProduct = (productId: string) => {
     onSuccess(data: Product){
       //Invalidad Product Queries
       productIdRef.current = data.id
-
+      clearImages()
       queryClient.invalidateQueries({
         queryKey: ['products', 'infinite']
       });

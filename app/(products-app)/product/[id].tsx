@@ -13,6 +13,7 @@ import { Formik } from 'formik'
 import { Size } from '@/core/products/interfaces/product'
 import MenuIconButton from '@/presentation/theme/components/MenuIconButton'
 import { useCameraStore } from '@/presentation/store/useCameraStore'
+import { RefreshControl } from 'react-native-gesture-handler'
 
 const ProductScreen = () => {
 
@@ -62,12 +63,20 @@ const ProductScreen = () => {
   const product = productQuery.data!
 
   return (
-    <Formik initialValues={product} onSubmit={(productLike) => productMutation.mutate(productLike)}>
+    <Formik initialValues={product} onSubmit={(productLike) => productMutation.mutate({
+      ...productLike,
+      images: [...productLike.images, ...selectedImages]
+      }
+      )}>
 
       {
         ({values, handleSubmit, handleChange, setFieldValue}) => (
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{flex:1}}>
-            <ScrollView >
+            <ScrollView 
+              refreshControl={<RefreshControl refreshing={productQuery.isFetching} onRefresh={async() => {
+                await productQuery.refetch();
+              }}/>}
+            >
               <ProductImages images={[...values.images, ...selectedImages]}></ProductImages>
               <ThemedView style={{marginHorizontal: 10, marginTop: 20}}>
                 <ThemeTextInput placeholder='Nombre del Producto' style={{marginVertical: 5}} value={values.title} onChangeText={handleChange('title')}/>
