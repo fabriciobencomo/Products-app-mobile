@@ -12,13 +12,23 @@ import ThemedButton from '@/presentation/theme/components/ThemedButton'
 import { Formik } from 'formik'
 import { Size } from '@/core/products/interfaces/product'
 import MenuIconButton from '@/presentation/theme/components/MenuIconButton'
+import { useCameraStore } from '@/presentation/store/useCameraStore'
 
 const ProductScreen = () => {
 
   const navigation = useNavigation()
+  const {selectedImages, clearImages} = useCameraStore()
 
   const {id } = useLocalSearchParams()
   const { productQuery, productMutation } = useProduct(`${id}`)
+
+  useEffect(() => {
+    
+    return () => {
+    clearImages()
+    }
+  }, [])
+  
 
   useEffect(() => {
     navigation.setOptions({
@@ -58,7 +68,7 @@ const ProductScreen = () => {
         ({values, handleSubmit, handleChange, setFieldValue}) => (
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{flex:1}}>
             <ScrollView >
-              <ProductImages images={values.images}></ProductImages>
+              <ProductImages images={[...values.images, ...selectedImages]}></ProductImages>
               <ThemedView style={{marginHorizontal: 10, marginTop: 20}}>
                 <ThemeTextInput placeholder='Nombre del Producto' style={{marginVertical: 5}} value={values.title} onChangeText={handleChange('title')}/>
                 <ThemeTextInput placeholder='slug' style={{marginVertical: 5}} value={values.slug} onChangeText={handleChange('slug')}/>

@@ -4,17 +4,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
+import { useCameraStore } from '@/presentation/store/useCameraStore';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
-  const [permission, requestPermission] = useCameraPermissions();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
   const [selectedImage, setselectedImage] = useState<string | undefined>()
+  const {addSelectedImage} = useCameraStore()
 
   const cameraRef = useRef<CameraView>(null)
 
-  if (!permission) {
+
+
+  const onRequestPermissions = async () => {
+    try {
+      const {status: cameraPermissionStatus} = await requestCameraPermission();
+      if(cameraPermissionStatus !== 'granted') {
+        Alert.alert("Lo Siento", "No se puede usar la camara sin permisos")
+        return
+      }
+      const {status: mediaLibraryPermissionStatus} = await requestMediaLibraryPermission();
+      if(mediaLibraryPermissionStatus !== 'granted') {
+        Alert.alert("Lo Siento", "No se puede usar la galeria sin permisos")
+        return
+      }
+    } catch (error) { 
+      console.error(error)
+      Alert.alert("Error", "No se pudo obtener los permisos necesarios")
+    }
+  }
+
+
+
+  if (!cameraPermission) {
     // Camera permissions are still loading.
     return <View />;
   }
@@ -37,8 +63,27 @@ export default function CameraScreen() {
     router.dismiss()
   }
 
-  const onPictureSAccept = () => {
+  const onPickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      aspect: [4, 3],
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
+    });
+
+    if(result.canceled) return
+    result.assets.forEach(asset => {
+      addSelectedImage(asset.uri)
+    })
+  }
+
+  const onPictureSAccepted = async() => {
     // TODO: Save picture to gallery
+    if(!selectedImage) return
+    await MediaLibrary.createAssetAsync(selectedImage)
+    addSelectedImage(selectedImage)
+    router.dismiss()
   }
 
   function toggleCameraFacing() {
@@ -49,7 +94,7 @@ export default function CameraScreen() {
     return (
         <View style={styles.container}>
           <Image source={{uri: selectedImage}} style={styles.camera}></Image>
-          <ConfirmImageButton onPress={() => router.dismiss()}/>
+          <ConfirmImageButton onPress={onPictureSAccepted}/>
           <RetakeImageButton onPress={() => setselectedImage(undefined)}/>
           <ReturnCancelButton onPress={onReturnCancel}/>
       </View>  
@@ -57,13 +102,13 @@ export default function CameraScreen() {
   }
 
 
-  if (!permission.granted) {
+  if (!cameraPermission.granted) {
     // Camera permissions are not granted yet.
     return (
       <View style={{...styles.container, marginHorizontal: 30, justifyContent: 'center', alignItems: 'center'}}>
         <Text style={styles.message}>Necesitamos permiso para usar la camara y la galeria</Text>
 
-        <TouchableOpacity onPress={requestPermission}>
+        <TouchableOpacity onPress={onRequestPermissions}>
           <ThemedText type='subtitle'>Solicitar Permiso</ThemedText>
         </TouchableOpacity >
       </View>
@@ -75,7 +120,7 @@ export default function CameraScreen() {
       <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
           <ShutterButton onPress={onShutterButtonPress} />
           <FlipCameraButton onPress={toggleCameraFacing} />
-          <GalleryButton />
+          <GalleryButton  onPress={onPickImage}/>
           <ReturnCancelButton onPress={onReturnCancel}/>
           {/* <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <Text style={styles.text}>Flip Camera</Text>
